@@ -1,0 +1,2 @@
+# desiguales
+trabajo estadística multivariada
