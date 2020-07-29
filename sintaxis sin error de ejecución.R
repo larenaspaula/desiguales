@@ -39,7 +39,9 @@ base<- rename(base,desigualdad=V15,
               politica=V140)
 
 #---ANÁLISIS DESCRIPTIVO
-  
+
+#---Análisis univariado  
+
 #estadísticos descriptivos 
 view(dfSummary(base, headings = FALSE, method = "render"))
 
@@ -51,16 +53,18 @@ politg<- plot_scatter(data = base,x = politica,y = desigualdad,fit.grps = "lm")
 # Unir graficos
 grid.arrange(demog, econog, politg, nrow = 1) 
 
-#---ANÁLISIS MODELOS DE REGRESIÓN
-  
+#---Análisis bivariado
+
 #correlación etre variables
 tab_corr(base)
 
 #gráfico para visualizar las correlaciones
 M <- cor(base)
-corrplot(M, method = "circle") #aquí se decide el que se facilite más
+corrplot(M, method = "circle") #aquí se observa la variable que facilite más el análisis
 corrplot(M, method = "number")
 
+#---ANÁLISIS MODELOS DE REGRESIÓN
+  
 #regresión múltiple
 desigualdad_democracia<-lm(desigualdad ~ democracia, data=base)
 desigualdad_economia<-lm(desigualdad ~  economia, data=base)
@@ -73,5 +77,17 @@ sjPlot::tab_model(list(desigualdad_democracia, desigualdad_economia,desigualdad_
 #la variable mas influyente en los modelos de regresión
 plot_model(desigualdad_modelo, show.values = TRUE)+ theme_sjplot()
 
+#tabla de regresión
+reg1 <-lm(desigualdad ~ democracia, data=base)
+reg2<-lm(desigualdad ~ democracia + economia + politica, data=base)
+
+sjPlot::tab_model(list(reg1,reg2),
+                  show.se=TRUE,
+                  show.ci=FALSE,
+                  digits=3,
+                  p.style = "stars",
+                  dv.labels = c("Modelo 1", "Modelo 2"),
+                  string.pred = "Predictores",
+                  string.est = "β")
 
 
