@@ -13,32 +13,33 @@ pacman::p_load(dplyr, #manipulacion de datos
 )
 
 #abrir base de datos (se realizó un proyecto en R, por lo que no se importa la base por SETWD)
-PNUD_DES <- read_spss("PNUD_DES_2016_publica.sav")
+
+PNUD_DES <- read.csv("PNUD_DES_2016_publica.csv")
 
 #---MODIFICACIÓN BASE DE DATOS
 
 #selección variables
-desiguales <- dplyr::select(PNUD_DES,V15,V142,V128,V140,V70)
+desiguales <- dplyr::select(PNUD_DES,p9_6,p34,p27,p32,p14)
 
 #eliminar los casos perdidos
-desiguales$V15 <- recode(desiguales$V15, "c(88,99)=NA")
-desiguales$V142 <- recode(desiguales$V142, "c(8,9)=NA")
-desiguales$V128 <- recode(desiguales$V128, "c(88,99)=NA")
-desiguales$V140 <- recode(desiguales$V140, "c(88,99)=NA")
-desiguales$V70 <- recode(desiguales$V70, "c(8,9)=NA")
+desiguales$p9_6 <- recode(desiguales$p9_6, "c(88,99)=NA")
+desiguales$p34 <- recode(desiguales$p34, "c(8,9)=NA")
+desiguales$p27 <- recode(desiguales$p27, "c(88,99)=NA")
+desiguales$p32 <- recode(desiguales$p32, "c(88,99)=NA")
+desiguales$p14 <- recode(desiguales$p14, "c(8,9)=NA")
 
-desiguales <- filter(desiguales, !is.na(V15))
-desiguales<- filter(desiguales, !is.na(V142))
-desiguales <- filter(desiguales, !is.na(V128))
-desiguales<- filter(desiguales, !is.na(V140))
-desiguales<- filter(desiguales, !is.na(V70))
+desiguales <- filter(desiguales, !is.na(p9_6))
+desiguales<- filter(desiguales, !is.na(p34))
+desiguales <- filter(desiguales, !is.na(p27))
+desiguales<- filter(desiguales, !is.na(p32))
+desiguales<- filter(desiguales, !is.na(p14))
 
 #ajustar nombres de las variables
-desiguales<- rename(desiguales,desigualdad=V15,
-              democracia=V142,
-              economia=V128,
-              politica=V140,
-              clase=V70)
+desiguales<- rename(desiguales,desigualdad=p9_6,
+                    democracia=p34,
+                    economia=p27,
+                    politica=p32,
+                    clase=p14)
 
 #ajustar nombre de las etiquetas
 get_label(desiguales) #visualizar etiquetas
@@ -51,39 +52,45 @@ desiguales$clase <- set_label(x = desiguales$clase,label = "En que clase se ubic
 
 #se guarda base de datos modificada
 
-save(desiguales, file = "../desiguales/desiguales.RData")
+save(desiguales, file = "../desiguales/desigualescsv.RData")
 
 #---ANÁLISIS DESCRIPTIVO
 
 #---Análisis univariado  
 
 #estadísticos descriptivos 
-view(dfSummary(desiguales, headings = FALSE, method = "render"), file = "descriptivos.html")
+view(dfSummary(desiguales, headings = FALSE, method = "render"), file = "descriptivoscsv.html")
 
 #se exporta la tabla
-webshot("descriptivos.html","descriptivos.png")
+webshot("descriptivoscsv.html","descriptivoscsv.png")
 
 #---Análisis bivariado
 
 #correlación etre variables
-tab_corr(desiguales, file="correlacion.html")
+tab_corr(desiguales, file="correlacioncsv.html")
+
 #se exporta la tabla
-webshot("correlacion.html","correlacion.png")
+webshot("correlacioncsv.html","correlacioncsv.png", vwidth = 300,
+        vheight = 300, zoom = 5)
 
 #gráfico para visualizar las correlaciones
 M <- cor(desiguales)
 corrplot(M, method = "circle") 
 corrplot(M, method = "number")
 
-#nube de puntos
-demog<- plot_scatter(data = desiguales,x = democracia,y = desigualdad,fit.grps = "lm")
-econog<- plot_scatter(data = desiguales,x = economia,y = desigualdad,fit.grps = "lm")
-politg<- plot_scatter(data = desiguales,x = politica,y = desigualdad,fit.grps = "lm")
-claseg<- plot_scatter(data = desiguales,x = clase,y = desigualdad,fit.grps = "lm")
+# Gráfico de cajas
 
-# Unir graficos
+demog <- plot_grpfrq(var.cnt = desiguales$desigualdad, var.grp = desiguales$democracia,
+                     type = "box")
+econog <- plot_grpfrq(var.cnt = desiguales$desigualdad, var.grp = desiguales$economia,
+                      type = "box")
+politg <- plot_grpfrq(var.cnt = desiguales$desigualdad, var.grp = desiguales$politica,
+                      type = "box")
+claseg <- plot_grpfrq(var.cnt = desiguales$desigualdad, var.grp = desiguales$clase,
+                     type = "box")
+
+# Unir gráficos
 grid.arrange(demog, econog, politg, claseg, nrow = 1)
-
 
 #---ANÁLISIS MODELOS DE REGRESIÓN
 
@@ -119,10 +126,12 @@ sjPlot::tab_model(list(reg1,reg2, reg3, reg4, reg5, reg6, reg7),
                   p.style = "stars",
                   dv.labels = c("Modelo 1", "Modelo 2", "Modelo 3", "Modelo 4", "Modelo 5", "Modelo 6", "Modelo 7"),
                   string.pred = "Predictores",
-                  string.est = "β", file="modelos de regresion.html")
+                  string.est = "β", file="modelos de regresion2.html")
 
 #se exporta la tabla
-webshot("modelos de regresion.html","modelos de regresion.png")
+
+webshot("modelos de regresion2.html","modelos de regresion2.png", vwidth = 300,
+        vheight = 300, zoom = 5)
 
 #regresión con clase
 
@@ -145,4 +154,5 @@ sjPlot::tab_model(list(reg_1,reg_2, reg_3, reg_4, reg_5),
 #se exporta la tabla
 webshot("modelos de regresion2.html","modelos de regresion2.png")
 
+#---Inferencia estadística
 
